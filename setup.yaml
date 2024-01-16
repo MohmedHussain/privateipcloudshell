@@ -66,7 +66,7 @@
 
 - name: Get the VNIC attachment details of instance
   oci_compute_vnic_attachment_facts:
-    compartment_id: "ocid1.compartment.oc1..aaaaaaaa2fkmcyero6i7c2xnje7hyzsfcsbnuostm6aqi4yr5otqyxjdolfq"
+    compartment_id: "{{ instance_compartment }}"
     instance_id: "{{ instance_id }}"
   register: result
 
