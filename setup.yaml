@@ -13,7 +13,7 @@
     - "SAMPLE_COMPARTMENT_OCID"
     - "SAMPLE_IMAGE_OCID"
     - "SAMPLE_AD_NAME"
-    - "SAMPLE_SUBNET_ID"
+    - "SAMPLE_SUBNET_OCID"
 
 - name: Create a temporary directory to house a temporary SSH keypair we will later use to connect to instance
   tempfile:
