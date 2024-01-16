@@ -31,8 +31,8 @@
 
     - name: Create a new block volume
       oci_blockstorage_volume:
-        availability_domain: "BJcO:AP-HYDERABAD-1-AD-1"
-        compartment_id: "ocid1.compartment.oc1..aaaaaaaa2fkmcyero6i7c2xnje7hyzsfcsbnuostm6aqi4yr5otqyxjdolfq"
+        availability_domain: "{{ instance_ad }}"
+        compartment_id: "{{ instance_compartment }}"
         name: "{{ volume_name }}"
       register: result
     - set_fact:
@@ -43,7 +43,7 @@
         instance_id: "{{ instance_id }}"
         type: "iscsi"
         volume_id: "{{ volume_id }}"
-        compartment_id: "ocid1.compartment.oc1..aaaaaaaa2fkmcyero6i7c2xnje7hyzsfcsbnuostm6aqi4yr5otqyxjdolfq"
+        compartment_id: "{{ instance_compartment }}"
       register: result
     - set_fact:
         volume_attachment_details: "{{ result.volume_attachment }}"
