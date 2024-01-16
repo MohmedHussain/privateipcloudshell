@@ -26,6 +26,7 @@
     # provide an OL image
     instance_image: "{{ lookup('env', 'SAMPLE_IMAGE_OCID') }}"
     subnet_id: "{{ lookup('env', 'SAMPLE_SUBNET_OCID') }}"
+    private_ip: "{{ lookup('env', 'SAMPLE_PRIVATE_IP') }}"
 
   tasks:
     - import_tasks: setup.yaml
