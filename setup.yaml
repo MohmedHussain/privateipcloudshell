@@ -36,10 +36,10 @@
 
 - name: Launch an instance
   oci_compute_instance:
-    availability_domain: "BJcO:AP-HYDERABAD-1-AD-1"
-    compartment_id: "ocid1.compartment.oc1..aaaaaaaa2fkmcyero6i7c2xnje7hyzsfcsbnuostm6aqi4yr5otqyxjdolfq"
+    availability_domain: "{{ instance_ad }}"
+    compartment_id: "{{ instance_compartment }}"
     name: "my_test_instance"
-    image_id: "ocid1.image.oc1.ap-hyderabad-1.aaaaaaaavnnozlfmsyjajkksdlcpuvxpjhygbmkowokdxlcktk3zdfknbx3a"
+    image_id: "{{ instance_image }}"
     shape: "{{ instance_shape }}"
     shape_config:
        ocpus: 1
