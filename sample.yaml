@@ -25,6 +25,7 @@
     instance_compartment: "{{ lookup('env', 'SAMPLE_COMPARTMENT_OCID') }}"
     # provide an OL image
     instance_image: "{{ lookup('env', 'SAMPLE_IMAGE_OCID') }}"
+    subnet_id: "{{ lookup('env', 'SAMPLE_SUBNET_OCID') }}"
 
   tasks:
     - import_tasks: setup.yaml
