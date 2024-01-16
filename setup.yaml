@@ -1,0 +1,105 @@
+---
+# Copyright (c) 2020, 2023 Oracle and/or its affiliates.
+# This software is made available to you under the terms of the GPL 3.0 license or the Apache 2.0 license.
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# Apache License v2.0
+# See LICENSE.TXT for details.
+
+- name: Check pre-requisites
+  fail:
+    msg: "Environment variable {{item}} not set. Please declare an environment variable with an appropriate value for the sample to work."
+  when: item not in ansible_env
+  with_items:
+    - "SAMPLE_COMPARTMENT_OCID"
+    - "SAMPLE_IMAGE_OCID"
+    - "SAMPLE_AD_NAME"
+
+- name: Create a temporary directory to house a temporary SSH keypair we will later use to connect to instance
+  tempfile:
+    state: directory
+    suffix: cert
+  register: result
+- set_fact:
+    temp_certificates_path: "{{ result.path }}"
+- name: Generate a Private Key
+  openssl_privatekey:
+    path: "{{ temp_certificates_path }}/private_key.pem"
+    type: RSA
+    size: 2048
+- set_fact:
+    my_test_public_key: "{{ temp_certificates_path }}/public_key.pem"
+- name: Generate a Public Key
+  openssl_publickey:
+    path: "{{ my_test_public_key }}"
+    privatekey_path: "{{ temp_certificates_path }}/private_key.pem"
+    format: OpenSSH
+
+- name: Launch an instance
+  oci_compute_instance:
+    availability_domain: "BJcO:AP-HYDERABAD-1-AD-1"
+    compartment_id: "ocid1.compartment.oc1..aaaaaaaa2fkmcyero6i7c2xnje7hyzsfcsbnuostm6aqi4yr5otqyxjdolfq"
+    name: "my_test_instance"
+    image_id: "ocid1.image.oc1.ap-hyderabad-1.aaaaaaaavnnozlfmsyjajkksdlcpuvxpjhygbmkowokdxlcktk3zdfknbx3a"
+    shape: "{{ instance_shape }}"
+    shape_config:
+       ocpus: 1
+       memory_in_gbs: 6
+    create_vnic_details:
+        assign_public_ip: False
+        assign_private_dns_record: true
+        hostname_label: "{{ instance_hostname }}"
+#        subnet_id: "ocid1.subnet.oc1.ap-hyderabad-1.aaaaaaaaxab4sf35bv47o7jqkmx6ck2r3m2fgplafquo3luv5y6obkpggaea"
+        subnet_id: "ocid1.subnet.oc1.ap-hyderabad-1.aaaaaaaa3zzrstaskdc2goeshkt3b7qlclqcfyit7xfumnnlvswv7zo3lc5a"
+        private_ip: '10.0.1.25'
+    metadata:
+        ssh_authorized_keys: "{{ lookup('file',  my_test_public_key ) }}"
+  register: result
+
+- name: Print instance details
+  debug:
+    msg: "Launched a new instance {{ result }}"
+- set_fact:
+    instance_id: "{{result.instance.id }}"
+
+- name: Get the VNIC attachment details of instance
+  oci_compute_vnic_attachment_facts:
+    compartment_id: "ocid1.compartment.oc1..aaaaaaaa2fkmcyero6i7c2xnje7hyzsfcsbnuostm6aqi4yr5otqyxjdolfq"
+    instance_id: "{{ instance_id }}"
+  register: result
+
+- name: Get details of the VNIC
+  oci_network_vnic_facts:
+    id: "{{ result.vnic_attachments[0].vnic_id }}"
+  register: result
+- set_fact:
+    instance_private_ip: "{{result.vnic.private_ip}}"
+
+- name: Print the public ip of the newly launched instance
+  debug:
+    msg: "Public IP of launched instance {{ instance_private_ip }}"
+
+- name: Wait (upto 5 minutes) for port 22 to become open
+  wait_for:
+    port: 22
+    host: '{{ instance_private_ip }}'
+    state: started
+    delay: 10
+  vars:
+    ansible_connection: local
+
+- set_fact:
+    # Use "opc" user as this is an OL image
+    # Disable SSH's strict host key checking just for this one command invocation
+    common_ssh_args: '-o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" -i {{ temp_certificates_path }}/private_key.pem opc@{{ instance_private_ip }}'
+
+- name: Attempt a ssh connection to the newly launced instance
+  # Use "opc" user as this is an OL image
+  # Disable SSH's strict host key checking just for this one command invocation
+  command: "ssh {{ common_ssh_args }} uname -a"
+  retries: 3
+  delay: 5
+  register: result
+  until: result.rc == 0
+- name: Print SSH response from launched instance
+  debug:
+    msg: "SSH response from instance -> {{ result.stdout_lines }}"
