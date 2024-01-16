@@ -50,8 +50,6 @@
         assign_public_ip: False
         assign_private_dns_record: true
         hostname_label: "{{ instance_hostname }}"
-#        subnet_id: "ocid1.subnet.oc1.ap-hyderabad-1.aaaaaaaaxab4sf35bv47o7jqkmx6ck2r3m2fgplafquo3luv5y6obkpggaea"
-#        subnet_id: "ocid1.subnet.oc1.ap-hyderabad-1.aaaaaaaa3zzrstaskdc2goeshkt3b7qlclqcfyit7xfumnnlvswv7zo3lc5a"
         subnet_id: "{{ subnet_id }}"
         private_ip: "{{ private_ip }}"
     metadata:
